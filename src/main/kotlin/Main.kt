@@ -1,4 +1,3 @@
-import java.sql.ResultSet
 import java.util.*
 
 
@@ -57,6 +56,7 @@ class Engine {
                     println("Incorrect input. Please try again.")
                 }
             }
+
         } while (reason !in listOf("name", "description", "priority", "status"))
 
         db.editTask(taskName)
@@ -65,14 +65,6 @@ class Engine {
 
 fun main() {
     val newTask = Engine()
-
-    val myTask = TaskClass(
-        name = "name",
-        description = "description",
-        date = Date(),
-        priority = 1,
-        status = false
-    )
 
     var action: String?
 
