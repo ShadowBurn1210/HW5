@@ -25,7 +25,7 @@ class DB {
     private val connection: Connection = DriverManager.getConnection(url, username, password)
 
 
-    fun createTable(): Unit {
+    fun createTable() {
         try {
             val statement: Statement = connection.createStatement()
 
@@ -86,11 +86,22 @@ class DB {
         preparedStatement.close()
     }
 
-    fun editTask(taskName: String) {
-        val sql = "UPDATE Tasks SET status = ? WHERE name = ?"
+    fun editTask(taskName: String, updatedTask: TaskClass) {
+        val sql = "UPDATE Tasks SET name = ?, description = ?, date = ?, priority = ?, status = ? WHERE name = ?"
         val preparedStatement = connection.prepareStatement(sql)
 
+        preparedStatement.setString(1, updatedTask.name)
+        preparedStatement.setString(2, updatedTask.description)
+        preparedStatement.setTimestamp(3, Timestamp(updatedTask.date.time))
+        preparedStatement.setInt(4, updatedTask.priority)
+        preparedStatement.setBoolean(5, updatedTask.status)
+        preparedStatement.setString(6, taskName)
+
+        preparedStatement.executeUpdate()
+
+        preparedStatement.close()
     }
+
 
 
     fun addTask(newTask: TaskClass) {

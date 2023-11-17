@@ -40,28 +40,32 @@ class Engine {
     }
 
     fun editTask() {
-        println("What is the name of the task you want to edit")
+        println("What is the name of the task you want to edit?")
         val taskName: String = readln()
 
-        do {
-            println("What you want to edit?")
-            val reason: String = readln()
+        println("Enter the new name of the task:")
+        val updatedName: String = readln()
 
-            when (reason) {
-                "name" -> db.editTask(taskName)
-//                "description" -> newTask.deleteTask()
-//                "priority" -> newTask.editTask()
-//                "status" -> println(newTask.getTasks())
-                else -> {
-                    println("Incorrect input. Please try again.")
-                }
-            }
+        println("Enter the new description of the task:")
+        val updatedDescription: String = readln()
 
+        println("Enter the new priority of the task:")
+        val updatedPriority: Int = readln().toInt()
 
-        } while (reason !in listOf("name", "description", "priority", "status"))
+        println("Enter the new status of the task:")
+        val updatedStatus: Boolean = readln().toBoolean()
 
-        db.editTask(taskName)
+        val updatedTask = TaskClass(
+            name = updatedName,
+            description = updatedDescription,
+            date = Date(),
+            priority = updatedPriority,
+            status = updatedStatus
+        )
+
+        db.editTask(taskName, updatedTask)
     }
+
 }
 
 fun main() {
