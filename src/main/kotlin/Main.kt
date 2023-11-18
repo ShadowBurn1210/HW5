@@ -41,19 +41,19 @@ class Engine {
 
     fun editTask() {
         println("What is the name of the task you want to edit?")
-        val taskName: String = readln()
+        val taskName: String = readlnOrNull() ?: return
 
         println("Enter the new name of the task:")
-        val updatedName: String = readln()
+        val updatedName: String = readlnOrNull() ?: taskName
 
         println("Enter the new description of the task:")
-        val updatedDescription: String = readln()
+        val updatedDescription: String = readlnOrNull() ?: ""
 
         println("Enter the new priority of the task:")
-        val updatedPriority: Int = readln().toInt()
+        val updatedPriority: Int = readlnOrNull()?.toInt() ?: -1
 
         println("Enter the new status of the task:")
-        val updatedStatus: Boolean = readln().toBoolean()
+        val updatedStatus: Boolean = readlnOrNull().toBoolean()
 
         val updatedTask = TaskClass(
             name = updatedName,

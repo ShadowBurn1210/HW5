@@ -91,16 +91,38 @@ class DB {
         val preparedStatement = connection.prepareStatement(sql)
 
         preparedStatement.setString(1, updatedTask.name)
-        preparedStatement.setString(2, updatedTask.description)
+
+        // Set description only if updatedDescription is not null
+        if (updatedTask.description != null) {
+            preparedStatement.setString(2, updatedTask.description)
+        } else {
+            preparedStatement.setNull(2, Types.VARCHAR)
+        }
+
+        // Set date only if updatedDate is not null
         preparedStatement.setTimestamp(3, Timestamp(updatedTask.date.time))
-        preparedStatement.setInt(4, updatedTask.priority)
-        preparedStatement.setBoolean(5, updatedTask.status)
+
+        // Set priority only if updatedPriority is not null
+        if (updatedTask.priority != -1) {
+            preparedStatement.setInt(4, updatedTask.priority)
+        } else {
+            preparedStatement.setNull(4, Types.INTEGER)
+        }
+
+        // Set status only if updatedStatus is not null
+        if (updatedTask.status) {
+            preparedStatement.setBoolean(5, true)
+        } else {
+            preparedStatement.setBoolean(5, false)
+        }
+
         preparedStatement.setString(6, taskName)
 
         preparedStatement.executeUpdate()
 
         preparedStatement.close()
     }
+
 
 
 
