@@ -1,5 +1,3 @@
-import java.util.*
-
 
 class Engine {
     val db = DB()
@@ -16,27 +14,49 @@ class Engine {
     fun addTask() {
 
         println("What is the name of the task")
-        val taskName: String = readln()
+        var taskName: String = readln()
+
+        if (taskName == ""){
+            taskName = "Not mentioned"
+        }
 
         println("Describe the task")
-        val taskDescription = readln()
+        var taskDescription = readln()
 
+        if (taskDescription == ""){
+            taskDescription = "Not described"
+        }
         println("What is the priority of the task")
-        val taskPriority = readln().toInt()
+        var taskPriority = readln()
+
+        if (taskPriority == ""){
+            taskPriority = "0"
+        }
+
 
         println("How many days left till the deadline?")
-        val taskDueDate = readln().toInt()
+        var taskDueDate = readln()
+
+        if (taskDueDate == ""){
+            taskDueDate = "0"
+
+        }
 
         println("How long will it take to complete the task?")
-        val timeToComplete: Double = readln().toDouble()
+        var timeToComplete = readln()
+
+        if (timeToComplete == ""){
+            timeToComplete = "99"
+
+        }
 
 
         val newTask = TaskClass(
             name = taskName,
             description = taskDescription,
-            daysLeft = taskDueDate,
-            priority = taskPriority,
-            timeToComplete = timeToComplete,
+            daysLeft = taskDueDate.toInt(),
+            priority = taskPriority.toInt(),
+            timeToComplete = timeToComplete.toDouble(),
             status = false
         )
         db.addTask(newTask)
@@ -82,57 +102,45 @@ class Engine {
         db.editTask(taskName, updatedTask)
     }
 
-    fun OrderData() {
+    fun orderData() {
 
         var time: Double?
 
+        val tasks = db.getData()
+        var totalTime = 0.0
+        val taksToComplete = mutableListOf<String>()
+        val tasksByPriority = tasks.sortedByDescending { it.priority }
+
         do {
             println("How many hours do you plan to study/work: ")
-            time = readLine()?.toDouble()
+            time = readlnOrNull()?.toDouble()
 
             //https://chat.openai.com/share/56416b28-e5ed-4587-90b8-e5ade84fad72
             // This helped with sorting and getting the right data from the database
 
-
             if (time != null) {
-                val tasks = db.getData()
-                val totalTime: Double = 0.0
-                val taksToComplete = mutableListOf<String>()
-                val tasksByPriority = tasks.sortedByDescending { it.priority }
 
-
-                fun searchAndAdd (time:Double) {
-                    if (tasksByPriority.isNotEmpty()) {
+                if (tasksByPriority.isNotEmpty()) {
                         // Go through all the tasks
-                        for (task in tasksByPriority) {
+                    for (task in tasksByPriority) {
 
                             // If the task to complete takes less than time hours
-                            if (task.timeToComplete < time && task.timeToComplete + totalTime < time) {
-                                task.name?.let { taksToComplete.add(it) }
-                            }
+                        if (task.timeToComplete < time && task.timeToComplete + totalTime < time) {
+                            totalTime += task.timeToComplete
+                            task.name?.let { taksToComplete.add(it) }
                         }
+                    }
 
                         // Show what tasks he can complete in under time hours
-                        if (taksToComplete.isNotEmpty()) {
+                    if (taksToComplete.isNotEmpty()) {
                             println("You can complete the following tasks in under $time hours: ")
                             println(taksToComplete)
-                        }
-                        else{
+                    }
+                    else{
                             println("There are no tasks that you can complete in under $time hours")
-                        }
                     }
                 }
 
-                when {
-                    time < 2.0 -> searchAndAdd(2.0)
-                    time < 4.0 -> searchAndAdd(4.0)
-                    time < 6.0 -> searchAndAdd(6.0)
-                    time < 8.0 -> searchAndAdd(8.0)
-                    time > 8.0 -> {
-                        println("You can complete the following tasks, starting from higher priority ones: ")
-                        println(taksToComplete)
-                    }
-                }
             } else {
                 println("Invalid input. Please enter a valid number.")
             }
@@ -149,11 +157,10 @@ fun main() {
     var action: String?
 
 // https://stackoverflow.com/questions/76232682/how-kotlin-pattern-matching-work-as-scala
-
-
+    // This helped with the pattern matching
     do {
         println("Enter your action: ")
-        action = readLine()
+        action = readlnOrNull()
 
         when (action) {
             "add" -> newTask.addTask()
@@ -161,8 +168,8 @@ fun main() {
             "edit" -> newTask.editTask()
             "show" -> println(newTask.getTasks())
             "task" -> println(newTask.getTasks().random())
-            "help" -> println("add, delete, edit, show, task, help do, end")
-            "help do" ->  newTask.OrderData()
+            "help" -> println("add, delete, edit, show, task, prioritize, end")
+            "prioritize" ->  newTask.orderData()
                 else -> {
                     println("Incorrect input. Please try again.")
                 }

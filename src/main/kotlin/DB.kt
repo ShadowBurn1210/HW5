@@ -4,7 +4,7 @@ import java.util.*
 
 
 // https://chat.openai.com/share/d3fea2f3-6b0a-4e7e-a71c-526f0561ce32
-// My prompts with ChatGPT3.5 to help me connect DB
+// My prompts with ChatGPT3.5 to help me connect to DB
 
 class DB {
 
@@ -44,7 +44,7 @@ class DB {
             // Execute the SQL statement to create the table
             statement.execute(createTableSQL)
 
-            println("Table 'Tasks' created or already exists.")
+            println("Ready to load information")
 
         } catch (e: SQLException) {
             println("Error creating table 'Tasks': ${e.message}")
