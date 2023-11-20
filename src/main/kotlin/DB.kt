@@ -29,31 +29,25 @@ class DB {
         try {
             val statement: Statement = connection.createStatement()
 
-            // Check if the "Tasks" table already exists
-            val tableExistsSQL = "SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'Tasks');"
-            val resultSet: ResultSet = statement.executeQuery(tableExistsSQL)
-            resultSet.next()
-            val tableExists = resultSet.getBoolean(1)
+            // SQL statement to create the "Tasks" table
+            val createTableSQL = """
+            CREATE TABLE IF NOT EXISTS Tasks (
+                name TEXT,
+                description TEXT,
+                daysLeft INT,
+                priority INT,
+                timeToComplete DOUBLE PRECISION,
+                status BOOLEAN
+            );
+        """.trimIndent()
 
-            if (!tableExists) {
-                // SQL statement to create the "Tasks" table
-                val createTableSQL = """
-                CREATE TABLE Tasks (
-                    name TEXT,
-                    description TEXT,
-                    date TIMESTAMP,
-                    priority INT,
-                    status BOOLEAN
-                );
-            """.trimIndent()
+            // Execute the SQL statement to create the table
+            statement.execute(createTableSQL)
 
-                // Execute the SQL statement to create the table
-                statement.execute(createTableSQL)
+            println("Table 'Tasks' created or already exists.")
 
-                println("Table 'Tasks' created successfully.")
-            }
         } catch (e: SQLException) {
-            println("Table 'Tasks' already exists.")
+            println("Error creating table 'Tasks': ${e.message}")
         }
     }
 
@@ -75,6 +69,30 @@ class DB {
         return taskNames
     }
 
+
+    fun getData(): List<TaskClass> {
+        val statement = connection.prepareStatement("SELECT name, daysLeft, priority, timeToComplete FROM tasks")
+        val resultSet = statement.executeQuery()
+
+        val tasks = mutableListOf<TaskClass>()
+
+        while (resultSet.next()) {
+            val name = resultSet.getString("name")
+            val daysLeft = resultSet.getInt("daysLeft")
+            val priority = resultSet.getInt("priority")
+            val timeToComplete = resultSet.getDouble("timeToComplete")
+
+            val task = TaskClass(name, null, daysLeft, priority, timeToComplete, false)
+            tasks.add(task)
+        }
+
+        resultSet.close()
+        statement.close()
+
+        return tasks
+    }
+
+
     fun deleteTask(taskName: String) {
         val sql = "DELETE FROM Tasks WHERE name = ?"
         val preparedStatement = connection.prepareStatement(sql)
@@ -87,7 +105,7 @@ class DB {
     }
 
     fun editTask(taskName: String, updatedTask: TaskClass) {
-        val sql = "UPDATE Tasks SET name = ?, description = ?, date = ?, priority = ?, status = ? WHERE name = ?"
+        val sql = "UPDATE Tasks SET name = ?, description = ?, daysLeft = ?, priority = ?, timeToComplete = ?, status = ? WHERE name = ?"
         val preparedStatement = connection.prepareStatement(sql)
 
         preparedStatement.setString(1, updatedTask.name)
@@ -100,7 +118,7 @@ class DB {
         }
 
         // Set date only if updatedDate is not null
-        preparedStatement.setTimestamp(3, Timestamp(updatedTask.date.time))
+        preparedStatement.setInt(3, updatedTask.daysLeft)
 
         // Set priority only if updatedPriority is not null
         if (updatedTask.priority != -1) {
@@ -109,11 +127,16 @@ class DB {
             preparedStatement.setNull(4, Types.INTEGER)
         }
 
+        if (updatedTask.timeToComplete != -1.0) {
+            preparedStatement.setDouble(5, updatedTask.timeToComplete)
+        } else {
+            preparedStatement.setNull(5, Types.INTEGER)
+        }
         // Set status only if updatedStatus is not null
         if (updatedTask.status) {
-            preparedStatement.setBoolean(5, true)
+            preparedStatement.setBoolean(6, true)
         } else {
-            preparedStatement.setBoolean(5, false)
+            preparedStatement.setBoolean(6, false)
         }
 
         preparedStatement.setString(6, taskName)
@@ -127,14 +150,15 @@ class DB {
 
 
     fun addTask(newTask: TaskClass) {
-        val sql = "INSERT INTO Tasks (name, description, date, priority, status) VALUES (?, ?, ?, ?, ?)"
+        val sql = "INSERT INTO Tasks (name, description, daysLeft, priority, timeToComplete, status) VALUES (?, ?, ?, ?, ?, ?)"
         val preparedStatement = connection.prepareStatement(sql)
 
         preparedStatement.setString(1, newTask.name)
         preparedStatement.setString(2, newTask.description)
-        preparedStatement.setTimestamp(3, Timestamp(newTask.date.time))
+        preparedStatement.setInt(3, newTask.daysLeft)
         preparedStatement.setInt(4, newTask.priority)
-        preparedStatement.setBoolean(5, newTask.status)
+        preparedStatement.setDouble(5, newTask.timeToComplete)
+        preparedStatement.setBoolean(6, newTask.status)
 
         preparedStatement.executeUpdate()
 
@@ -142,172 +166,3 @@ class DB {
     }
 
 }
-//
-//
-//case class Register(username: String, password: String)
-//case class RegistrationResult(username: String, registered: Boolean, message: String)
-//case class Login(username: String, password: String)
-//case class LoginResults(username: String, savedGame : String, message: String)
-//case class LoadGame(username: String)
-//
-//case class LoadGameResults(username: String, RetrievedData : String)
-//
-//
-//case class SaveGame(username: String, charactersJSON: String)
-//
-//trait Database {
-//    def playerExists(username: String, password: String): Boolean
-//
-//    def IncorrectInput(username: String, password: String): String
-//
-//    def createPlayer(username: String, password: String): Unit
-//    def saveGameState(username: String, gameState: String): Unit
-//    def loadGameState(username: String): String
-//}
-//
-//    var connection: Connection? = null
-//
-//    fun createTable() = {
-//
-//        val statement = Connection.createStatement()
-//        println("Postgres connector")
-//
-//        statement.execute("CREATE TABLE IF NOT EXISTS players ( username TEXT primary key,  password TEXT, GameData TEXT);")
-//
-//
-//        class DB extends Actor with Database {
-//
-//        classOf[org.postgresql.Driver]
-//
-////   val url = "jdbc:postgresql://localhost:5432/Demo3"
-////   val username = "postgres" // change
-////   val password = "password"
-////   val connection = DriverManager.getConnection(url, username, password)
-//
-//        def createTable(): Unit = {
-//        val statement = connection.createStatement()
-//        println("Postgres connector")
-//
-//        statement.execute("CREATE TABLE IF NOT EXISTS players ( username TEXT primary key,  password TEXT, GameData TEXT);")
-//
-//    }
-//
-//        createTable()
-//
-//        var users: List[String] = List()
-//
-//        override def receive: Receive = {
-//
-//        case party: Register =>
-//        val PlayerAlreadyExists: Boolean = playerExists(party.username, party.password)
-//        println(PlayerAlreadyExists)
-//        if (PlayerAlreadyExists) {
-//            sender() ! RegistrationResult(party.username, registered = false, "Player already exists")
-//        } else {
-//            //        println("got there")
-//
-//            val passwordEncripted = BCrypt.withDefaults.hashToString(12, party.password.toCharArray)
-//            createPlayer(party.username, passwordEncripted)
-//            sender() ! RegistrationResult(party.username, registered = true, "Registration Successful")
-//        }
-//
-//
-//        case party: Login =>
-//        val PlayerAlreadyExists: Boolean = playerExists(party.username, party.password)
-//        if (PlayerAlreadyExists) {
-//            val gameState = loadGameState(party.username)
-//            sender() ! LoginResults(party.username, gameState, "Success")
-//        } else {
-//            val WrongCredential = IncorrectInput(party.username, party.password)
-//            sender() ! LoginResults(party.username, "", WrongCredential)
-//        }
-//
-//
-//        case party: SaveGame =>
-//        saveGameState(party.username, party.charactersJSON)
-//
-////    case party: LoadGame =>
-////      var DBData = loadGameState(party.username)
-////      sender() ! LoadGameResults(party.username, DBData)
-//    }
-//
-//
-//        override def playerExists(playerUsername: String, Playerpasword: String): Boolean = {
-//        val statement = connection.createStatement()
-//        val result: ResultSet = statement.executeQuery("SELECT * FROM players")
-//
-//
-//        while (result.next()) {
-//            val username = result.getString("username")
-//            val password = result.getString("password")
-//
-//            val decriptingPassword = BCrypt.verifyer.verify(Playerpasword.toCharArray, password)
-//            if (username == playerUsername && decriptingPassword.verified) {
-//                return true
-//            }
-//        }
-//        return false
-//    }
-//
-//        override def createPlayer(username: String, password: String): Unit = {
-//        val statement = connection.prepareStatement("INSERT INTO players Values (?, ?, ?)")
-//
-//        statement.setString(1, username)
-//        statement.setString(2, password)
-//        statement.setString(3, "")
-//
-//
-//        statement.execute()
-//    }
-//
-//        override def saveGameState(username: String, gameState: String): Unit = {
-//        val updateQuery = s"UPDATE players SET GameData = '$gameState' WHERE username = '$username'"
-//
-//        // Update the row with the new game_state value
-//        val updateStatement = connection.prepareStatement(updateQuery)
-////        println(gameState)
-//        updateStatement.executeUpdate()
-////    val statement = connection.prepareStatement(s"SELECT GameData FROM players WHERE username = '$username'")
-//        //    println(data)
-//    }
-//
-//
-//        override def loadGameState(username: String): String = {
-//        val statement = connection.prepareStatement(s"SELECT GameData FROM players WHERE username = '$username'")
-//
-//        val resultSet = statement.executeQuery()
-//
-//        if (resultSet.next()) {
-//            val gameData = resultSet.getString("GameData")
-////      println("DB data" + gameData)
-//            gameData
-//        } else {
-//            throw new NoSuchElementException(s"User '$username' not found.")
-//        }
-//    }
-//
-//        override def IncorrectInput(Playerusername: String, Playerpassword: String): String = {
-//        val statement = connection.createStatement()
-//        val result: ResultSet = statement.executeQuery("SELECT * FROM players")
-//
-//
-//        while (result.next()) {
-//            val username = result.getString("username")
-//            val password = result.getString("password")
-//
-//            val decriptingPassword = BCrypt.verifyer.verify(Playerpassword.toCharArray, password)
-//            if (username != Playerusername && decriptingPassword.verified) {
-//                return "Player Username is incorrect"
-//
-//            } else if (username == Playerusername && !decriptingPassword.verified) {
-//
-//                return "Player password is incorrect"
-//            }
-//        }
-//
-//        return "Password and Username is incorrect"
-//    }
-//    }
-//    }
-//
-//

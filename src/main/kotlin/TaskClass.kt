@@ -5,7 +5,8 @@ import java.util.*
 data class TaskClass(
     val name : String?,
     val description : String?,
-    val date : Date = Date(),
+    val daysLeft : Int = 1,
     val priority : Int = 1,
+    val timeToComplete : Double = 4.0,
     val status : Boolean = false,
 )
