@@ -139,7 +139,7 @@ class DB {
             preparedStatement.setBoolean(6, false)
         }
 
-        preparedStatement.setString(6, taskName)
+        preparedStatement.setString(7, taskName)
 
         preparedStatement.executeUpdate()
 

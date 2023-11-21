@@ -87,7 +87,7 @@ class Engine {
         println("How long will it take to complete the task?")
         val timeToComplete: Double = readlnOrNull()?.toDouble() ?: -1.0
 
-        println("Enter the new status of the task:")
+        println("Has the task been completes(false/true):")
         val updatedStatus: Boolean = readlnOrNull().toBoolean()
 
         val updatedTask = TaskClass(
